@@ -78,6 +78,11 @@
                             class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 font-medium outline-none transition duration-150">
                     </div>
 
+                    <div id="errorMessage" class="hidden bg-red-50 text-red-700 border border-red-200 px-4 py-3 rounded-lg text-sm font-medium mb-4 flex items-center space-x-2">
+                        <span>⚠️</span>
+                        <span id="errorMessageText">Please select both Date of Birth and Test Date.</span>
+                    </div>
+
                     <div class="flex space-x-3 pt-2">
                         <button type="button" onclick="calculateAgeResult()"
                             class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-lg shadow-lg shadow-indigo-100 transition duration-150 transform active:scale-95 text-center">
@@ -188,9 +193,9 @@
     <footer class="bg-slate-900 text-slate-400 py-12 text-xs border-t border-slate-800">
         <div class="max-w-5xl mx-auto px-4 text-center space-y-6">
             <div class="flex justify-center space-x-6 text-sm mb-4">
-                <a href="javascript:void(0)" onclick="toggleModal('aboutModal')" class="hover:text-white transition">About Us</a>
-                <a href="javascript:void(0)" onclick="toggleModal('privacyModal')" class="hover:text-white transition">Privacy Policy</a>
-                <a href="javascript:void(0)" onclick="toggleModal('disclaimerModal')" class="hover:text-white transition">Disclaimer</a>
+                <button type="button" onclick="toggleModal('aboutModal')" class="hover:text-white transition focus:outline-none">About Us</button>
+                <button type="button" onclick="toggleModal('privacyModal')" class="hover:text-white transition focus:outline-none">Privacy Policy</button>
+                <button type="button" onclick="toggleModal('disclaimerModal')" class="hover:text-white transition focus:outline-none">Disclaimer</button>
             </div>
             
             <p>ClinicalAge is a free, professional, independent tool. Pearson, WISC, CELF, and PPVT are trademarks of their respective owners.</p>
@@ -205,7 +210,7 @@
                 ClinicalAge is a specialized utility tool designed specifically for educational and clinical assessment professionals, including Speech-Language Pathologists (SLPs), school psychologists, and occupational therapists. Following the discontinuation of older calculation tools, we created this free alternative to make the cognitive load of evaluation days a little lighter. Our mission is to provide fast, reliable, and standardized tools for the clinical community.
             </p>
             <div class="text-right">
-                <button onclick="toggleModal('aboutModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Close</button>
+                <button type="button" onclick="toggleModal('aboutModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Close</button>
             </div>
         </div>
     </div>
@@ -222,7 +227,7 @@
                 <li><strong>Cookies & Advertising:</strong> We use Google AdSense to serve non-personalized ads to keep this tool free. Google may use cookies to serve ads based on your prior visits to this or other websites.</li>
             </ul>
             <div class="text-right">
-                <button onclick="toggleModal('privacyModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Close</button>
+                <button type="button" onclick="toggleModal('privacyModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Close</button>
             </div>
         </div>
     </div>
@@ -234,7 +239,7 @@
                 This tool is provided "as is" without warranty of any kind, either expressed or implied. While we strive to maintain 99.99% mathematical and clinical accuracy, ClinicalAge is an independent resource and should be used as a supplementary aid. Assessment professionals are solely responsible for verifying the accuracy of all calculations before finalized diagnoses or clinical reporting. We are not affiliated with or endorsed by Pearson Assessments.
             </p>
             <div class="text-right">
-                <button onclick="toggleModal('disclaimerModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Close</button>
+                <button type="button" onclick="toggleModal('disclaimerModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Close</button>
             </div>
         </div>
     </div>
@@ -243,7 +248,9 @@
         // Modal Toggle Helper
         function toggleModal(modalId) {
             const modal = document.getElementById(modalId);
-            modal.classList.toggle('hidden');
+            if (modal) {
+                modal.classList.toggle('hidden');
+            }
         }
 
         // Set dates on load
@@ -252,68 +259,50 @@
             // Default DOB to 10 years ago to show an example
             let tenYearsAgo = new Date();
             tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
-            document.getElementById('birthDate').value = tenYearsAgo.toISOString().split('T');
+            const birthInput = document.getElementById('birthDate');
+            if (birthInput) {
+                // Fixed: Split returns an array, getting the 0th element gets the clean YYYY-MM-DD string
+                birthInput.value = tenYearsAgo.toISOString().split('T');
+            }
         };
 
         function setToday() {
+            // Fixed: split('T') extracts only the date string, avoiding array values in input fields
             let today = new Date().toISOString().split('T');
-            document.getElementById('testDate').value = today;
+            const testInput = document.getElementById('testDate');
+            if (testInput) {
+                testInput.value = today;
+            }
         }
 
         function resetForm() {
-            document.getElementById('birthDate').value = '';
+            const birthInput = document.getElementById('birthDate');
+            if (birthInput) {
+                birthInput.value = '';
+            }
             setToday();
+            hideError();
             document.getElementById('resultsWelcome').classList.remove('hidden');
             document.getElementById('resultsOutput').classList.add('hidden');
         }
 
+        function showError(message) {
+            const errDiv = document.getElementById('errorMessage');
+            const errText = document.getElementById('errorMessageText');
+            if (errDiv && errText) {
+                errText.innerText = message;
+                errDiv.classList.remove('hidden');
+            }
+        }
+
+        function hideError() {
+            const errDiv = document.getElementById('errorMessage');
+            if (errDiv) {
+                errDiv.classList.add('hidden');
+            }
+        }
+
         function calculateAgeResult() {
+            hideError();
             let dobVal = document.getElementById('birthDate').value;
-            let testVal = document.getElementById('testDate').value;
-
-            if (!dobVal ||!testVal) {
-                alert("Please select both Date of Birth and Test Date.");
-                return;
-            }
-
-            let birth = new Date(dobVal + 'T00:00:00');
-            let test = new Date(testVal + 'T00:00:00');
-
-            if (test < birth) {
-                alert("The Date of Testing must be after the Date of Birth.");
-                return;
-            }
-
-            let birthYear = birth.getFullYear();
-            let birthMonth = birth.getMonth() + 1; // 1-12
-            let birthDay = birth.getDate();
-
-            let testYear = test.getFullYear();
-            let testMonth = test.getMonth() + 1; // 1-12
-            let testDay = test.getDate();
-
-            let calDay = testDay;
-            let calMonth = testMonth;
-            let calYear = testYear;
-
-            // Step 1: Subtract Days with borrowing
-            if (calDay < birthDay) {
-                let prevMonth = calMonth - 1;
-                let prevYear = calYear;
-                if (prevMonth === 0) {
-                    prevMonth = 12;
-                    prevYear--;
-                }
-                let daysInPrev = new Date(prevYear, prevMonth, 0).getDate();
-                
-                calDay += daysInPrev;
-                calMonth--;
-            }
-
-            // Step 2: Subtract Months with borrowing
-            if (calMonth < birthMonth) {
-                calMonth += 12;
-                calYear--;
-            }
-
-            let finalDays = 
+            
